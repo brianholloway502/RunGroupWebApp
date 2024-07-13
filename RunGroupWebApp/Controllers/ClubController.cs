@@ -159,5 +159,39 @@ namespace RunGroupWebApp.Controllers
             }
 
         }
+
+        /// <summary>
+        /// Displays Delete page to the user.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<IActionResult> Delete(int id)
+        {
+            var clubDetails = await _clubRepository.GetByIdAsync(id);
+            if (clubDetails == null)
+            {
+                return View("Error");
+            }
+
+            return View(clubDetails);
+        }
+
+        /// <summary>
+        /// Handles the pst and the actual deletion of the club from the database.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpPost, ActionName("Delete")]
+        public async Task<IActionResult> DeleteClub(int id)
+        {
+            var clubDetails = await _clubRepository.GetByIdAsync(id);
+            if (clubDetails == null)
+            {
+                return View("Error");
+            }
+
+            _clubRepository.Delete(clubDetails);
+            return RedirectToAction("Index");
+        }
     }
 }
