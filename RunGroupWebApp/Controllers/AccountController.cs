@@ -66,5 +66,66 @@ namespace RunGroupWebApp.Controllers
             TempData["Error"] = "Wrong credentials. Please, try again.";
             return View(loginViewModel);
         }
+
+        /// <summary>
+        /// Get method that retrieves the Register page.
+        /// </summary>
+        /// <returns></returns>
+        public IActionResult Register()
+        {
+            var response = new RegisterViewModel();
+            return View(response);
+        }
+
+        /// <summary>
+        /// Post the data which registers the user in the application database.
+        /// </summary>
+        /// <param name="registerViewModel"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<IActionResult> Register(RegisterViewModel registerViewModel)
+        {
+            if (!ModelState.IsValid) 
+            { 
+                return View(registerViewModel);
+            }
+
+            // Look for the user.
+            var user = await _userManager.FindByEmailAsync(registerViewModel.EmailAddress);
+
+            // User was found so we do not want to re-register the same person.
+            if (user != null) 
+            {
+                TempData["Error"] = "This email address is already in use.";
+                return View(registerViewModel);
+            }
+
+            // Otherwise since email does not exist, we want to create the new user.
+            var newUser = new AppUser
+            {
+                Email = registerViewModel.EmailAddress,
+                UserName = registerViewModel.EmailAddress
+            };
+
+            var newUserResponse = await _userManager.CreateAsync(newUser, registerViewModel.Password);
+
+            if (newUserResponse.Succeeded)
+            {
+                await _userManager.AddToRoleAsync(newUser, UserRoles.User);
+            }
+
+            return RedirectToAction("Index", "Race");
+        }
+
+        /// <summary>
+        /// Logs user out of the application.
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<IActionResult> LogOut()
+        {
+            await _signInManager.SignOutAsync();
+            return RedirectToAction("Index", "Race");
+        }
     }
 }
